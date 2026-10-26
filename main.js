@@ -269,8 +269,12 @@ function computeRows(){
       }
     }
     const unitProfit = sale - unitCost.gold - opportunity;
-    const efficiency = unitCost.stamina > 0 ? (unitProfit / unitCost.stamina) * STAMINA_BUDGET : null;
+    // 실제로 판매할 수 있는 정수 개수에 대해서만 수익을 계산한다.
+    // 황금 요리의 묶음 제작 단위는 기존 계산기의 평균 ST 기준을 유지한다.
     const craftable = unitCost.stamina > 0 ? Math.floor(STAMINA_BUDGET / unitCost.stamina + 1e-9) : null;
+    const efficiency = craftable !== null ? unitProfit * craftable : null;
+    const totalSales = craftable !== null ? sale * craftable : null;
+    const totalCosts = craftable !== null ? (unitCost.gold + opportunity) * craftable : null;
     const baseMaterials = craftable ? collectBaseMaterials(name, craftable) : {};
     rows.push({
       name,
@@ -280,6 +284,8 @@ function computeRows(){
       unitProfit,
       unitStamina: unitCost.stamina,
       efficiency,
+      totalSales,
+      totalCosts,
       craftable,
       baseMaterials,
     });
@@ -329,7 +335,7 @@ function renderResults(){
       </td>
       <td class="num">${fmt(row.sale)} G</td>
       <td class="num ${row.unitProfit >= 0 ? '' : 'minus'}">${fmt(row.unitProfit,2)} G</td>
-      <td class="num emphasis">${Number.isFinite(row.efficiency) ? fmt(row.efficiency,2) + ' G' : '—'}</td>
+      <td class="num emphasis" title="판매가 × 제작 가능 정수 개수 − 확인된 재료비 × 제작 개수">${Number.isFinite(row.efficiency) ? fmt(row.efficiency,2) + ' G' : '—'}<span class="cell-calc">판매 ${fmt(row.totalSales)}G − 비용 ${fmt(row.totalCosts,2)}G</span></td>
       <td class="num">${row.craftable ?? '—'}개</td>
       <td><div class="materials-wrap">${materialChips(materialsMode === 'unit' ? collectBaseMaterials(row.name, 1) : row.baseMaterials)}</div></td>
     </tr>`).join('') || '<tr><td colspan="6">표시할 아이템이 없습니다.</td></tr>';
@@ -351,7 +357,7 @@ function renderQuick(){
     <div class="quick-grid">
       <div class="quick-card"><small>판매가</small><strong>${fmt(row.sale)} G</strong></div>
       <div class="quick-card"><small>1개 순수익</small><strong>${fmt(row.unitProfit,2)} G</strong></div>
-      <div class="quick-card"><small>1,000 ST 순수익</small><strong>${fmt(row.efficiency,2)} G</strong></div>
+      <div class="quick-card"><small>1,000 ST 실제 제작 개수 기준 순수익</small><strong>${fmt(row.efficiency,2)} G</strong><span class="cell-calc">판매 ${fmt(row.totalSales)}G − 비용 ${fmt(row.totalCosts,2)}G</span></div>
       <div class="quick-card"><small>1,000 ST 제작 가능</small><strong>${row.craftable}개</strong></div>
     </div>
     <div class="quick-material-box"><div class="quick-title">1,000 ST 기준 필요한 재료</div><div class="materials-wrap">${mats}</div></div>`;

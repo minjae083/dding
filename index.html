@@ -73,19 +73,57 @@ html,body{width:100%;overflow-x:hidden}
  .results-table td:nth-child(1)::before{content:'아이템'}
  .results-table td:nth-child(2)::before{content:'판매가'}
  .results-table td:nth-child(3)::before{content:'1개 순수익'}
- .results-table td:nth-child(4)::before{content:'1,000 ST 순수익'}
+ .results-table td:nth-child(4)::before{content:'1,000 ST 실제 제작 수익'}
  .results-table td:nth-child(5)::before{content:'제작 가능'}
  .results-table td:nth-child(6)::before{content:'필요 재료'}
  .results-table td:last-child{display:block;text-align:left}
  .results-table td:last-child::before{display:block;margin-bottom:8px}
  .materials-wrap{justify-content:flex-start}
 }
+
+/* v13: PC에서는 넓은 표, 모바일에서는 스크롤 없는 카드 UI */
+.cell-calc{display:block;font-size:11px;line-height:1.5;color:#aabdd7;font-weight:400;margin-top:4px;white-space:normal}
+.layout{max-width:none;width:100%;grid-template-columns:190px minmax(0,1fr);gap:16px;padding:18px 16px 48px}
+.results-table{min-width:0!important;width:100%;table-layout:fixed}
+.results-table td:nth-child(4),.results-table th:nth-child(4){width:16%}
+.results-table td:nth-child(6),.results-table th:nth-child(6){width:39%}
+@media(min-width:901px) and (max-width:1399px){.layout{grid-template-columns:minmax(0,1fr)}.sidebar{position:static}.side-nav{flex-direction:row;flex-wrap:wrap}}
+@media(max-width:900px){
+ .layout{display:block;padding:10px;max-width:100%}
+ .sidebar{position:static;margin-bottom:12px;padding:10px}
+ .side-nav{display:flex;flex-direction:row;flex-wrap:wrap;gap:6px}
+ .side-nav a{padding:8px 10px}
+ .content{min-width:0;width:100%}
+ .card{padding:14px 12px;min-width:0;border-radius:14px}
+ .results-table{display:block;min-width:0!important;width:100%}
+ .results-table thead{display:none}
+ .results-table tbody{display:grid;grid-template-columns:1fr;gap:12px;width:100%}
+ .results-table tr{display:block;width:100%!important;border:1px solid #3c4e6a;border-radius:14px;padding:12px;background:#202c41}
+ .results-table td{width:100%!important;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:9px 0!important;text-align:right;border:0;border-bottom:1px solid #304058;overflow-wrap:anywhere}
+ .results-table td::before{flex:0 0 110px;text-align:left;font-size:12px;color:#acc0dd}
+ .results-table td:first-child{display:block;text-align:left}.results-table td:first-child::before{display:none}
+ .results-table td:last-child{display:block;text-align:left;border-bottom:0}
+ .results-table td:last-child::before{display:block;width:auto;margin-bottom:8px}
+ .results-table td.num{white-space:normal;min-width:0}
+ .results-table .materials-wrap{width:100%!important;min-width:0!important;display:flex;flex-wrap:wrap;gap:6px}
+ .mat-chip{max-width:100%}
+ .quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+ .quick-card strong{font-size:17px;overflow-wrap:anywhere}
+ .summary{grid-template-columns:1fr}
+ .toolbar{grid-template-columns:1fr}
+ .planner-inputs{grid-template-columns:1fr}
+ .header-inner{padding:10px}
+ .brand{font-size:15px}
+ .header .top-search{min-width:0}
+}
+@media(max-width:440px){.quick-grid{grid-template-columns:1fr}.results-table td::before{flex-basis:96px}}
+
 </style>
 </head>
 <body>
 <header class="header">
   <div class="header-inner">
-    <div class="brand"><div class="brand-logo">⚔</div><div>띵타이쿤 모험가 계산기</div></div>
+    <div class="brand"><div class="brand-logo">⚔</div><div>띵타이쿤 계산기</div></div>
     <div class="top-search">⌕ <input id="header-search" aria-label="전체 아이템 검색" placeholder="아이템 검색 · Enter로 이동"></div>
   </div>
 </header>
@@ -108,7 +146,7 @@ html,body{width:100%;overflow-x:hidden}
       </div>
       <div class="hero-bottom section-head">
         <h2>아이템 효율 비교</h2>
-        <p>니가 원한 대로 복잡한 목표 순수익은 빼고, 1,000 ST 기준으로 필요한 정보만 깔끔하게 정리했당께.</p>
+        <p> 1,000 ST 기준</p>
       </div>
     </section>
 
@@ -140,7 +178,7 @@ html,body{width:100%;overflow-x:hidden}
       </div>
       <div class="summary">
         <div class="summary-box"><small>가장 효율 좋은 아이템</small><strong id="best-name">—</strong></div>
-        <div class="summary-box"><small>1,000 ST당 순수익</small><strong id="best-profit">—</strong></div>
+        <div class="summary-box"><small>1,000 ST 실제 제작 수익</small><strong id="best-profit">—</strong></div>
         <div class="summary-box"><small>비용 계산 방식</small><strong>1,000 ST 기준</strong></div>
       </div>
       <div class="table-wrap">
@@ -150,7 +188,7 @@ html,body{width:100%;overflow-x:hidden}
               <th>아이템</th>
               <th>판매가</th>
               <th>1개 순수익</th>
-              <th>1,000 ST당 순수익</th>
+              <th>1,000 ST 실제 제작 수익</th>
               <th>1,000 ST로 제작 가능</th>
               <th id="materials-heading">재료 개수 · 1개 제작</th>
             </tr>
@@ -158,7 +196,7 @@ html,body{width:100%;overflow-x:hidden}
           <tbody id="result-table"></tbody>
         </table>
       </div>
-      <p class="footer-note" style="margin-top:12px">재료 수량은 소수점 없이 올림하여 표시합니다. 예: 씨앗 138.67개 → 실제 준비 수량 139개. 금 가루도 묶음 제작에 필요한 수량만큼 올림합니다. 스테미나 효율은 평균 획득량 기준 추정치이며 실제 제작 가능량과 차이가 날 수 있습니다. 아이콘은 게임 실제 텍스처가 아닙니다.</p>
+      <p class="footer-note" style="margin-top:12px">난 부자가 될것이야. 으하하하하.</p>
     </section>
 
     <section class="card" id="planner">
@@ -168,7 +206,7 @@ html,body{width:100%;overflow-x:hidden}
     </section>
     <section class="card" id="settings">
       <div class="card-title"><h3>추가 설정</h3><span class="subtext">필요할 때만 펼쳐서 쓰면 됩니다</span></div>
-      <div class="settings-note">기본값은 니가 적어준 판매가, 5강 세이지 괭이/곡괭이, 금 가루 평균 33.33회 기준으로 적용해뒀다.</div>
+      <div class="settings-note">부과 설정들</div>
 
       <details>
         <summary>세이지 괭이·곡괭이 설정</summary>
